@@ -4,6 +4,8 @@ extern ssl_dynamic_methods ssl_methods;
 extern crypto_dynamic_methods crypto_methods;
 
 WF_OPENSSL(void, setSSLVerify)(JNIEnv *e, jobject o, jlong ssl, jint level, jint depth);
+WF_OPENSSL(void, setDefaultVerifyPaths)(JNIEnv *e, jobject o, jlong ctx);
+
 int SSL_callback_SSL_verify(int ok, X509_STORE_CTX *ctx);
 /*
  * This OpenSSL callback function is called when OpenSSL
@@ -80,6 +82,22 @@ int SSL_callback_SSL_verify(int ok, X509_STORE_CTX *ctx)
     return ok;
 }
 
+WF_OPENSSL(void, setDefaultVerifyPaths)(JNIEnv *e, jobject o, jlong ctx)
+{
+#pragma comment(linker, "/EXPORT:"__FUNCTION__"="__FUNCDNAME__)
+    tcn_ssl_ctxt_t *c = J2P(ctx, tcn_ssl_ctxt_t *);
+    X509_STORE *store;
+
+    if (ssl_methods.SSL_CTX_set_default_verify_paths(c->ctx)) {
+        store = ssl_methods.SSL_CTX_get_cert_store(c->ctx);
+        crypto_methods.X509_STORE_set_flags(store, 0);
+    } else {
+        char err[2048];
+        generate_openssl_stack_error(e, err, sizeof(err));
+        throwIllegalStateException(e, err);
+    }
+}
+
 WF_OPENSSL(void, setSSLVerify)(JNIEnv *e, jobject o, jlong ssl, jint level, jint depth)
 {
 #pragma comment(linker, "/EXPORT:"__FUNCTION__"="__FUNCDNAME__)
@@ -111,15 +129,6 @@ WF_OPENSSL(void, setSSLVerify)(JNIEnv *e, jobject o, jlong ssl, jint level, jint
     if ((c->verify_mode == SSL_CVERIFY_OPTIONAL) ||
         (c->verify_mode == SSL_CVERIFY_OPTIONAL_NO_CA))
         verify |= SSL_VERIFY_PEER;
-    if (!c->store) {
-        if (ssl_methods.SSL_CTX_set_default_verify_paths(c->ctx)) {
-            c->store = ssl_methods.SSL_CTX_get_cert_store(c->ctx);
-            crypto_methods.X509_STORE_set_flags(c->store, 0);
-        }
-        else {
-            /* XXX: See if this is fatal */
-        }
-    }
 
     ssl_methods.SSL_set_verify(ssl_, verify, SSL_callback_SSL_verify);
 }

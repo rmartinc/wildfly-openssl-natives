@@ -435,8 +435,6 @@ typedef struct {
 
     /* certificate revocation list */
     X509_STORE      *crl;
-    /* pointer to the context verify store */
-    X509_STORE      *store;
     X509            *certs[SSL_AIDX_MAX];
     EVP_PKEY        *keys[SSL_AIDX_MAX];
 
