@@ -435,8 +435,6 @@ typedef struct {
 
     /* certificate revocation list */
     X509_STORE      *crl;
-    /* pointer to the context verify store */
-    X509_STORE      *store;
     X509            *certs[SSL_AIDX_MAX];
     EVP_PKEY        *keys[SSL_AIDX_MAX];
 
@@ -445,9 +443,6 @@ typedef struct {
     char            *rand_file;
 
     const char      *cipher_suite;
-    /* for client or downstream server authentication */
-    int             verify_depth;
-    int             verify_mode;
 
     /* for client: List of protocols to request via ALPN.
      * for server: List of protocols to accept via ALPN.
@@ -575,6 +570,7 @@ typedef struct {
     int (*SSL_set_ciphersuites)(SSL *s, const char *str);
     void (*SSL_set_connect_state)(SSL *s);
     void (*SSL_set_verify)(SSL *s, int mode, int (*callback) (int ok, X509_STORE_CTX *ctx));
+    void (*SSL_set_verify_depth)(SSL *s, int depth);
     void (*SSL_set_verify_result)(SSL *ssl, long v);
     int (*SSL_shutdown)(SSL *s);
     int (*SSL_set_info_callback)(SSL *ssl, void (*callback)(SSL *ssl, int where, int ret));

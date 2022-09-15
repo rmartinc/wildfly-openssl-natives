@@ -388,6 +388,7 @@ int load_openssl_dynamic_methods(JNIEnv *e, const char * libCryptoPath, const ch
     REQUIRE_SSL_SYMBOL(SSL_set_cipher_list);
     REQUIRE_SSL_SYMBOL(SSL_set_connect_state);
     REQUIRE_SSL_SYMBOL(SSL_set_verify);
+    REQUIRE_SSL_SYMBOL(SSL_set_verify_depth);
     REQUIRE_SSL_SYMBOL(SSL_set_verify_result);
     REQUIRE_SSL_SYMBOL(SSL_shutdown);
     REQUIRE_SSL_SYMBOL(SSL_set_info_callback);
@@ -666,11 +667,6 @@ WF_OPENSSL(jlong, makeSSLContext)(JNIEnv *e, jobject o, jint protocol, jint mode
                    (unsigned long)((sizeof SSL_DEFAULT_VHOST_NAME) - 1),
                    &(c->context_id[0]), NULL, crypto_methods.EVP_sha1(), NULL);
 
-        /* Set default Certificate verification level
-         * and depth for the Client Authentication
-         */
-        c->verify_depth  = 1;
-        c->verify_mode   = SSL_CVERIFY_UNSET;
         c->shutdown_type = SSL_SHUTDOWN_TYPE_UNSET;
 
         /* Cache Java side SNI callback if not already cached */
